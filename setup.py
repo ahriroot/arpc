@@ -1,5 +1,6 @@
 import setuptools
 
+long_description = ""
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -11,11 +12,19 @@ setuptools.setup(
     description="A framework of remote procedure call.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ahriroot/arpc-python",
+    url="https://github.com/ahrirpc/arpc-python",
     packages=setuptools.find_packages(),
+    py_modules=['main'],
+    entry_points = {
+        "console_scripts": [
+            "arpc = arpc.utils:main"
+        ]
+    },
+    license="Apache License 2.0",
+    platforms="any",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
