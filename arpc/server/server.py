@@ -11,6 +11,7 @@ class Server:
         self.handler = {}
         self.ip = ip
         self.port = port
+        self.backlog = 128
         self.client_count = client_count
 
     def register(self, name, func):
@@ -22,6 +23,7 @@ class Server:
         body = b''
 
         buf = client_socket.recv(BUFLEN)
+        
         if length == 0:
             res = buf.split(b'\n')
             if len(res) > 2:
@@ -55,7 +57,7 @@ class Server:
         tcp_socket.setsockopt(
             socket.SOL_SOCKET, socket.SO_REUSEADDR, True)  # 设置端口复用
         tcp_socket.bind((self.ip, self.port))
-        tcp_socket.listen(128)
+        tcp_socket.listen(self.backlog)
 
         print(f'Serving on {self.ip}:{self.port}')
         try:

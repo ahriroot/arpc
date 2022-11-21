@@ -32,16 +32,23 @@ def main():
             print_version()
         else:
             print("Fatal error: Invalid args\n")
-    elif len_args == 5:
+    elif len_args >= 5:
         input_ = ""
         output_ = ""
-        if args[1] == "--input" or args[1] == "-i":
-            input_ = args[2]
-        if args[3] == "--output" or args[3] == "-o":
-            output_ = args[4]
+        async_ = False
+        index = 1
+        while index < len_args:
+            if args[index] == "-i" or args[index] == "--input":
+                input_ = args[index + 1]
+            elif args[index] == "-o" or args[index] == "--output":
+                output_ = args[index + 1]
+            elif args[index] == "-a" or args[index] == "--async":
+                async_ = True
+            index += 2
         if input_ == "" or output_ == "":
             print("Fatal error: Invalid args\n")
         else:
+            print("async: ", async_)
             compiles(input_, output_)
     else:
         print("Fatal error: Invalid args\n")
