@@ -10,6 +10,9 @@ class Base:
     def deserialize(self, data):
         return self(**json.loads(data.decode()))
 
+    def json(self):
+        return self.__dict__
+
 
 class BaseAsync:
 
@@ -19,3 +22,6 @@ class BaseAsync:
     @classmethod
     async def deserialize(self, data):
         return self(**json.loads(data.decode()))
+
+    async def json(self):
+        return self.__dict__

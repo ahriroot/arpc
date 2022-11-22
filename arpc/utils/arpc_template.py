@@ -70,8 +70,11 @@ def generate_procedure_class(_, unique, procedure, async_):
         snake_name = snake(p['name'])
         strs_interface.append(
             f"    @abc.abstractmethod\n    {async_}def {snake_name}(self, request: {p['request']}) -> {p['response']}: pass\n")
-        strs_client.append(
-            f"    {async_}def {snake_name}(self):\n        pass\n")
+        strs_client.append(f"""
+    {async_}def {snake_name}(self, request: {p['request']}) -> {p['response']}:
+        data = {await_}request.serialize()
+        res = {await_}self.conn.handle('{package_id}.{p['index']}', data)
+        return {await_}{p['response']}.deserialize(res)""")
         if async_:
             strs_server.append(
                 f"        await server.register('{package_id}.{p['index']}', await get_func(self.{snake_name}))")
@@ -83,18 +86,18 @@ def generate_procedure_class(_, unique, procedure, async_):
     client_str = '\n'.join(strs_client)
     server_str = '\n'.join(strs_server)
 
-    inner_func = f"""async def get_func(function):
+    inner_func = f"""
+async def get_func(function):
     async def func(request, _):
         req = await RequestV1.deserialize(request)
         response = await function(req)
         return await response.serialize()
     return func
+
 """
 
     template = f"""
-
 {inner_func if async_ else ''}
-
 class Arpc(metaclass=abc.ABCMeta):
     \"\"\"
     This class is a Procedure class for arpc.
@@ -107,5 +110,12 @@ class Arpc(metaclass=abc.ABCMeta):
 
 class Client:
 
-{client_str}"""
+    def __init__(self, conn):
+        self.conn = conn
+{client_str}
+
+
+{async_}def new_client(conn):
+    return Client(conn)
+"""
     return template

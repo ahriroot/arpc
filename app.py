@@ -7,9 +7,11 @@ from arpc_package.api.api import Arpc, RequestV1, ResponseV1
 class SAsync(Arpc):
 
     async def get_user_v1(self, request: RequestV1) -> ResponseV1:
+        print(request)
         return ResponseV1(user_id=1, username='arpc name async')
 
     async def post_user_v1(self, request: ResponseV1) -> RequestV1:
+        print(request)
         return RequestV1(user_id=1)
 
 
