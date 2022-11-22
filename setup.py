@@ -20,6 +20,9 @@ setuptools.setup(
             "arpc = arpc.utils:main"
         ]
     },
+    extras_require=[
+        "nest_asyncio>=1.5.6",
+    ],
     license="Apache License 2.0",
     platforms="any",
     classifiers=[

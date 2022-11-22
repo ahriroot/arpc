@@ -21,7 +21,7 @@ def default(type_str):
         return "None"
 
 
-def generate_param_class(name, params):
+def generate_param_class(name, params, async_):
     """
     This function is a template to generate Param class.
     """
@@ -41,7 +41,7 @@ def generate_param_class(name, params):
 
     template = f"""
 
-class {name}(Base):
+class {name}({'BaseAsync' if async_ else 'Base'}):
     \"\"\"
     This class is a Param class for arpc.
     \"\"\"
@@ -52,10 +52,14 @@ class {name}(Base):
     return template
 
 
-def generate_procedure_class(name, unique, procedure):
+def generate_procedure_class(_, unique, procedure, async_):
     """
     This function is a template to generate Procedure class.
     """
+    async_ = "async " if async_ else ""
+    await_ = "await " if async_ else ""
+    await_s = ".serialize()" if async_ else ""
+
     package_id = unique
 
     strs_interface = []
@@ -65,16 +69,31 @@ def generate_procedure_class(name, unique, procedure):
     for p in procedure:
         snake_name = snake(p['name'])
         strs_interface.append(
-            f"    @abc.abstractmethod\n    def {snake_name}(self, request: {p['request']}) -> {p['response']}: pass\n")
-        strs_client.append(f"    def {snake_name}(self):\n        pass\n")
-        strs_server.append(
-            f"        server.register('{package_id}.{p['index']}', lambda request, _: self.{snake_name}(\n            {p['request']}.deserialize(request)).serialize())")
+            f"    @abc.abstractmethod\n    {async_}def {snake_name}(self, request: {p['request']}) -> {p['response']}: pass\n")
+        strs_client.append(
+            f"    {async_}def {snake_name}(self):\n        pass\n")
+        if async_:
+            strs_server.append(
+                f"        await server.register('{package_id}.{p['index']}', await get_func(self.{snake_name}))")
+        else:
+            strs_server.append(
+                f"        {await_}server.register('{package_id}.{p['index']}', lambda request, _: self.{snake_name}(\n            {p['request']}.deserialize(request)){await_s})")
 
     interface_str = '\n'.join(strs_interface)
     client_str = '\n'.join(strs_client)
     server_str = '\n'.join(strs_server)
 
+    inner_func = f"""async def get_func(function):
+    async def func(request, _):
+        req = await RequestV1.deserialize(request)
+        response = await function(req)
+        return await response.serialize()
+    return func
+"""
+
     template = f"""
+
+{inner_func if async_ else ''}
 
 class Arpc(metaclass=abc.ABCMeta):
     \"\"\"
@@ -82,12 +101,11 @@ class Arpc(metaclass=abc.ABCMeta):
     \"\"\"
 
 {interface_str}
-    def register(self, server):
+    {async_}def register(self, server):
 {server_str}
 
 
 class Client:
 
-{client_str}
-"""
+{client_str}"""
     return template

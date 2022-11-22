@@ -11,6 +11,7 @@ Options:
 
     -i, --input    input dir
     -o, --output   output dir
+    -a, --async    async mode, default true
 """
     print(text)
 
@@ -43,12 +44,12 @@ def main():
             elif args[index] == "-o" or args[index] == "--output":
                 output_ = args[index + 1]
             elif args[index] == "-a" or args[index] == "--async":
-                async_ = True
+                if args[index + 1].lower() == "true":
+                    async_ = True
             index += 2
         if input_ == "" or output_ == "":
             print("Fatal error: Invalid args\n")
         else:
-            print("async: ", async_)
-            compiles(input_, output_)
+            compiles(input_, output_, async_)
     else:
         print("Fatal error: Invalid args\n")

@@ -1,43 +1,49 @@
 import asyncio
-import socket
+from arpc.server import Server, ServerAsync
+
+from arpc_package.api.api import Arpc, RequestV1, ResponseV1
 
 
-async def task1():
-    while True:
-        print('hello')
-        await asyncio.sleep(1)
+class SAsync(Arpc):
+
+    async def get_user_v1(self, request: RequestV1) -> ResponseV1:
+        return ResponseV1(user_id=1, username='arpc name async')
+
+    async def post_user_v1(self, request: ResponseV1) -> RequestV1:
+        return RequestV1(user_id=1)
 
 
-async def task2():
-    while True:
-        print('world')
-        await asyncio.sleep(1)
+async def start_async():
+
+    s = ServerAsync('127.0.0.1', 9000)
+
+    c = SAsync()
+    await c.register(s)
+
+    await s.start()
 
 
-async def handle(client_socket):
-    while True:
-        data = client_socket.recv(1024)
-        if not data:
-            break
-        print(data)
-        client_socket.send(data)
-    client_socket.close()
+class S(Arpc):
+
+    def get_user_v1(self, request: RequestV1) -> ResponseV1:
+        print(request)
+        return ResponseV1(user_id=1, username='arpc name')
+
+    def post_user_v1(self, request: ResponseV1) -> RequestV1:
+        print(request)
+        return RequestV1(user_id=1)
 
 
-async def run():
-    tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-    tcp_socket.bind(('127.0.0.1', 8080))
-    tcp_socket.listen(128)
-    print('Serving')
-    while True:
-        client_socket, _ = tcp_socket.accept()
-        asyncio.create_task(handle(client_socket))
+def start():
 
+    s = Server('127.0.0.1', 9000)
 
-async def main():
-    await run()
+    c = S()
+    c.register(s)
+
+    s.start()
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    # start()
+    asyncio.run(start_async())

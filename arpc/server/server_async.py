@@ -1,6 +1,6 @@
 import asyncio
-import socket
-import threading
+import nest_asyncio
+nest_asyncio.apply()
 
 
 BUFLEN = 1024
@@ -15,7 +15,7 @@ class ServerAsync:
         self.backlog = 128
         self.client_count = client_count
 
-    def register(self, name, func):
+    async def register(self, name, func):
         self.handler[name] = func
 
     async def accept(self, reader, writer):
@@ -41,7 +41,6 @@ class ServerAsync:
             return
 
         res = await function(body, '')
-        res = res.serialize()
 
         data = b''
         data += str(len(res)).encode()
@@ -54,33 +53,21 @@ class ServerAsync:
         await writer.drain()
         writer.close()
 
-    def _start(self):
-        # tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # tcp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
-        # tcp_socket.bind(('127.0.0.1', 9000))
-        # tcp_socket.listen(128)
-        # print('Serving')
-        # while True:
-        #     client_socket, _ = tcp_socket.accept()
-        #     asyncio.create_task(self.accept(client_socket))
-
+    async def _start(self):
         loop = asyncio.get_event_loop()
 
         coro = asyncio.start_server(self.accept, '127.0.0.1', 9000)
         server = loop.run_until_complete(coro)
 
-        # Serve requests until Ctrl+C is pressed
         print('Serving on {}'.format(server.sockets[0].getsockname()))
         try:
             loop.run_forever()
-        except KeyboardInterrupt:
+        except Exception:
             pass
 
-        # Close the server
         server.close()
         loop.run_until_complete(server.wait_closed())
         loop.close()
 
-    def start(self):
-        # asyncio.run()
-        self._start()
+    async def start(self):
+        await self._start()

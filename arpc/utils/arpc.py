@@ -9,7 +9,7 @@ from .arpc_template import generate_param_class, generate_procedure_class
 PACKAGE = 'python'
 
 
-def generate_package(arpc_meta, path, output):
+def generate_package(arpc_meta, path, output, async_):
     # mkdir if not exists
     if not os.path.exists(output):
         os.makedirs(output)
@@ -33,15 +33,15 @@ def generate_package(arpc_meta, path, output):
 # package: {package_name}
 
 import abc
-from arpc.utils import Base
+from arpc.base import {'BaseAsync' if async_ else 'Base'}
 """
 
     for k, v in arpc_meta['param'].items():
-        result = generate_param_class(k, v)
+        result = generate_param_class(k, v, async_)
         file_str += result
 
     file_str += generate_procedure_class('Client',
-                                         arpc_meta['unique'], arpc_meta['procedures'])
+                                         arpc_meta['unique'], arpc_meta['procedures'], async_)
 
     if os.path.exists(python_file):
         os.remove(python_file)
@@ -237,12 +237,12 @@ def run(path: str | List[str]):
         return result
 
 
-def compile_(input_path: str, output_path: str):
+def compile_(input_path: str, output_path: str, async_: bool = False):
     arpc = compile_arpc(input_path)
-    generate_package(arpc, input_path, output_path)
+    generate_package(arpc, input_path, output_path, async_)
 
 
-def compiles(input_path: str, output_path: str):
+def compiles(input_path: str, output_path: str, async_: bool = False):
     files = []
     for root, _, fs in os.walk(input_path):
         for f in fs:
@@ -250,6 +250,7 @@ def compiles(input_path: str, output_path: str):
             if os.path.isfile(tmp_path) and f.endswith(".arpc"):
                 files.append(tmp_path)
     for file_ in files:
+        print(f"Compiling{' Async: ' if async_ else ': '}{file_}")
         c_path = os.path.relpath(file_, input_path)
         generate = os.path.dirname(os.path.join(output_path, c_path))
-        compile_(file_, generate)
+        compile_(file_, generate, async_)
