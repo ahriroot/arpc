@@ -1,6 +1,5 @@
 import asyncio
-import nest_asyncio
-nest_asyncio.apply()
+import sys
 
 
 BUFLEN = 1024
@@ -55,6 +54,12 @@ class ServerAsync:
 
     async def _start(self):
         loop = asyncio.get_event_loop()
+        
+        try:
+            import nest_asyncio
+            nest_asyncio.apply()
+        except Exception as e:
+            print(e)
 
         coro = asyncio.start_server(self.accept, '127.0.0.1', 9000)
         server = loop.run_until_complete(coro)
@@ -62,8 +67,8 @@ class ServerAsync:
         print('Serving on {}'.format(server.sockets[0].getsockname()))
         try:
             loop.run_forever()
-        except Exception:
-            pass
+        except KeyboardInterrupt:
+            sys.exit(0)
 
         server.close()
         loop.run_until_complete(server.wait_closed())

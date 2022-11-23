@@ -17,7 +17,7 @@ Options:
 
 
 def print_version():
-    print("arpc-python version 0.0.1")
+    print("arpc-python version 0.1.0")
 
 
 def main():

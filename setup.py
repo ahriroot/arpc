@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="arpc",
-    version="0.0.1",
+    version="0.1.0",
     author="ahriknow",
     author_email="ahriknow@ahriknow.com",
     description="A framework of remote procedure call.",
@@ -20,9 +20,9 @@ setuptools.setup(
             "arpc = arpc.utils:main"
         ]
     },
-    extras_require=[
-        "nest_asyncio>=1.5.6",
-    ],
+    extras_require={
+        "async": ["nest_asyncio>=1.5.6"]
+    },
     license="Apache License 2.0",
     platforms="any",
     classifiers=[

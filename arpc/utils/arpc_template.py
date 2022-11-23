@@ -80,7 +80,7 @@ def generate_procedure_class(_, unique, procedure, async_):
                 f"        await server.register('{package_id}.{p['index']}', await get_func(self.{snake_name}))")
         else:
             strs_server.append(
-                f"        {await_}server.register('{package_id}.{p['index']}', lambda request, _: self.{snake_name}(\n            {p['request']}.deserialize(request)){await_s})")
+                f"        {await_}server.register('{package_id}.{p['index']}', lambda request, _: self.{snake_name}(\n            {p['request']}.deserialize(request)).serialize(){await_s})")
 
     interface_str = '\n'.join(strs_interface)
     client_str = '\n'.join(strs_client)
